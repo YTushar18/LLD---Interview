@@ -42,7 +42,7 @@ class Vehicle:
 class ParkingSpot:
     def __init__(self, spot_id: str, spot_type: SpotType):
         self.spot_id = spot_id
-        self.spot_type = spot_type
+        self.spot_type = spot_type 
         self.vehicle = None  # Holds assigned vehicle
 
     def is_available(self):
@@ -202,9 +202,10 @@ if __name__ == "__main__":
         ParkingSpot("L2", SpotType.LARGE)
     ]
 
-    # Setup parking system with 1 floor
-    floor1 = ParkingFloor(1, spots)
-    parking_lot = ParkingLot([floor1])
+    # Setup parking system with 2 floor
+    floor1 = ParkingFloor(1, spots) # - floor 1
+    floor2 = ParkingFloor(2, spots) # - floor 2
+    parking_lot = ParkingLot([floor1, floor2])
 
     print("\n--- [INITIAL SPOT COUNTS] ---")
     print(parking_lot.get_available_spots())

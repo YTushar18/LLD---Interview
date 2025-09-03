@@ -118,9 +118,158 @@ Controller Pattern	Architectural	- ParkingLot acts as the main orchestrator, sim
 	•	PricingStrategy is a perfect use of the Strategy pattern, showing how logic can be modular and swappable.
 	•	The ParkingLot is cleanly separated from implementation details like how pricing is calculated (DIP).
 
+
+
+------
+
+If you want to implement multiple pricing strategies (e.g., FlatRate, Hourly, Weekend Discount, Dynamic Surge Pricing, etc.), you can elegantly do this using the Strategy Pattern in its full power.
+
 ⸻
 
-Would you like:
-	•	A PDF summary of this with the diagram?
-	•	To explore how we could add Entry/Exit gates, QR code scanner, or online payment modules?
-	•	Or shall we move on to the next LLD problem (e.g., Rate Limiter, Elevator System, ATM)?
+✅ Why Use Multiple Pricing Strategies?
+
+Different scenarios might demand different pricing logic:
+
+Scenario	Strategy
+Pay per hour	HourlyPricingStrategy
+Fixed price for all vehicles	FlatRateStrategy
+Weekend discount	WeekendDiscountStrategy
+Surge during peak hours	SurgePricingStrategy
+Custom logic per spot/zone	ZonalPricingStrategy
+
+
+⸻
+
+✅ Apply the Strategy Pattern Properly
+
+We’ll:
+	1.	Create an interface/base class PricingStrategy
+	2.	Implement multiple concrete classes
+	3.	Use dependency injection to plug the desired strategy into ParkingLot
+
+⸻
+
+🧱 Step-by-Step Implementation
+
+1. 🧠 PricingStrategy Interface
+
+from abc import ABC, abstractmethod
+
+class PricingStrategy(ABC):
+    @abstractmethod
+    def calculate_price(self, ticket) -> int:
+        pass
+
+
+⸻
+
+2. 💵 FlatRateStrategy
+
+class FlatRateStrategy(PricingStrategy):
+    def __init__(self, flat_rate: int = 50):
+        self.flat_rate = flat_rate
+
+    def calculate_price(self, ticket):
+        return self.flat_rate
+
+
+⸻
+
+3. ⏱ HourlyPricingStrategy (Already Used)
+
+class HourlyPricingStrategy(PricingStrategy):
+    def __init__(self):
+        self.rates = {
+            VehicleType.BIKE: 10,
+            VehicleType.CAR: 20,
+            VehicleType.TRUCK: 30
+        }
+
+    def calculate_price(self, ticket):
+        from datetime import datetime
+        hours = max(1, (datetime.now() - ticket.entry_time).seconds // 3600)
+        return hours * self.rates[ticket.vehicle.vehicle_type]
+
+
+⸻
+
+4. 🎉 WeekendDiscountStrategy (Wraps Another Strategy)
+
+import datetime
+
+class WeekendDiscountStrategy(PricingStrategy):
+    def __init__(self, base_strategy: PricingStrategy, discount_percent: float = 20.0):
+        self.base_strategy = base_strategy
+        self.discount_percent = discount_percent
+
+    def calculate_price(self, ticket):
+        base_price = self.base_strategy.calculate_price(ticket)
+        if datetime.datetime.now().weekday() >= 5:  # 5 = Saturday, 6 = Sunday
+            return int(base_price * (1 - self.discount_percent / 100))
+        return base_price
+
+
+⸻
+
+🧠 Step 5: Inject Strategy in ParkingLot
+
+Update your ParkingLot constructor:
+
+class ParkingLot:
+    def __init__(self, floors: List[ParkingFloor], pricing_strategy: PricingStrategy):
+        self.floors = floors
+        self.active_tickets = {}
+        self.pricing = pricing_strategy  # Strategy injected here
+
+
+⸻
+
+🧪 Step 6: Use It Dynamically
+
+if __name__ == "__main__":
+    from time import sleep
+
+    # Spot setup
+    spots = [
+        ParkingSpot("B1", SpotType.BIKE),
+        ParkingSpot("C1", SpotType.COMPACT),
+        ParkingSpot("L1", SpotType.LARGE)
+    ]
+    floor = ParkingFloor(1, spots)
+
+    # Choose pricing strategy dynamically
+    base_strategy = HourlyPricingStrategy()
+    weekend_strategy = WeekendDiscountStrategy(base_strategy)
+    # flat_strategy = FlatRateStrategy(60)
+
+    # Inject into ParkingLot
+    parking_lot = ParkingLot([floor], pricing_strategy=weekend_strategy)
+
+    ticket = parking_lot.park_vehicle("KA-01-HH1234", "CAR")
+    sleep(1)
+    if ticket:
+        parking_lot.unpark_vehicle(ticket.ticket_id)
+
+
+⸻
+
+✅ Summary
+
+Component	Role
+PricingStrategy	Abstract base (Interface)
+HourlyPricingStrategy	Default pricing by hour and vehicle
+FlatRateStrategy	Fixed price per vehicle
+WeekendDiscountStrategy	Wraps any other strategy and adds discounts
+ParkingLot	Injects whichever strategy is required
+
+
+⸻
+
+✅ Benefits
+	•	🔌 Easily swap pricing logic without touching ParkingLot
+	•	💡 Combine strategies (like decorator pattern)
+	•	📦 Clean separation of concerns (SRP + OCP + DIP)
+	•	🤖 Ideal for A/B testing, config-driven pricing, dynamic behavior
+
+⸻
+
