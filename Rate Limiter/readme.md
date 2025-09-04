@@ -80,6 +80,15 @@ Others (for later):
 | + allow(key): bool           |
 +-------------------------------+
 
++-------------------------------+
+| SlidingWindowLogStrategy    |
++-------------------------------+
+| - window_size: int (seconds) |
+| - max_requests: int          |
+| - store: Dict[str, (count, start_time)] |
++-------------------------------+
+| + allow(key): bool           |
++-------------------------------+
 
 ⸻
 
