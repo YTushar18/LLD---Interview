@@ -1,0 +1,36 @@
+digraph WeatherApp {
+	rankdir=LR size=10
+	sensors [label="IoT Sensors
+(temp, lat, lng)" fillcolor=lightgrey shape=box style=filled]
+	api [label="API Gateway
+(Validation, Auth)" fillcolor=lightblue shape=box style=filled]
+	lambda [label="Lambda
+(Pre-process events)" fillcolor=lightblue shape=box style=filled]
+	kinesis [label="Kafka / Kinesis / Event Hubs
+(Partition: sensor_id)" fillcolor=lightyellow shape=cylinder style=filled]
+	flink [label="Flink / Dataflow
+(Stream Processing,
+Aggregations)" fillcolor=lightgreen shape=box style=filled]
+	db [label="Time-series DB
+(AWS Timestream / TimescaleDB)
++ OpenSearch (geo queries)" fillcolor=orange shape=cylinder style=filled]
+	spark [label="Spark on EMR / Dataproc
+(Batch Jobs, MapReduce)" fillcolor=lightpink shape=box style=filled]
+	s3 [label="S3 / Blob Storage
+(Cache images & results)" fillcolor=lightyellow shape=cylinder style=filled]
+	cdn [label="CloudFront / CDN
+(Global delivery)" fillcolor=lightblue shape=box style=filled]
+	mobile [label="Mobile App
+(User queries, fetch results)" fillcolor=lightgrey shape=box style=filled]
+	sensors -> api
+	api -> lambda
+	lambda -> kinesis
+	kinesis -> flink
+	flink -> db
+	db -> spark
+	spark -> s3
+	s3 -> cdn
+	cdn -> mobile
+	db -> mobile [label="Query API"]
+	dpi=300
+}
