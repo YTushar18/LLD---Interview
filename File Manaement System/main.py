@@ -34,6 +34,8 @@ class FileEntity(ABC):
 class File(FileEntity):
     def __init__(self, name: str, owner: str, content: str = ""):
         super().__init__(name, owner)
+        # self.name = name
+        # self.metadata = Metadata(owner)
         self.content = content
 
     def display(self, indent: int = 0):
